@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">LoL History</string>
+
+    <string name="input_summoner_name">소환사 이름을 입력해주세요.</string>
+
+    <string name="enter">확인</string>
+
+    <string name="win">승</string>
+    <string name="defeat">패</string>
+
+    <string name="not_exist_summoner">소환사 이름을 다시 확인해주세요.</string>
+    <string name="history_error">대전 기록을 찾을 수 없습니다.</string>
+</resources>

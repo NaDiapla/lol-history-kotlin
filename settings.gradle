@@ -1,0 +1,2 @@
+rootProject.name = "LoLHistory"
+include ':app'
