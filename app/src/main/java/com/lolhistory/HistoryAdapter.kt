@@ -14,7 +14,10 @@ import com.lolhistory.parser.SpellParser
 import com.lolhistory.retrofit.BaseUrl
 import java.util.*
 
-class HistoryAdapter(private var matchHistories: ArrayList<MatchHistory>, private val puuid: String): RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
+class HistoryAdapter(
+    private var matchHistories: ArrayList<MatchHistory>,
+    private val puuid: String
+): RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
 
     private lateinit var context: Context
 
@@ -61,8 +64,6 @@ class HistoryAdapter(private var matchHistories: ArrayList<MatchHistory>, privat
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val matchHistory = matchHistories[position]
-        val playerIndex = getPlayerIndex(matchHistory)
-
         holder.bind(matchHistory, getPlayerIndex(matchHistory))
     }
 
@@ -80,8 +81,7 @@ class HistoryAdapter(private var matchHistories: ArrayList<MatchHistory>, privat
         return i
     }
 
-    private fun getDurationTime(millisecondTime: Long): String {
-        val secondTime = millisecondTime / 1000
+    private fun getDurationTime(secondTime: Long): String {
         val min = secondTime / 60
         val second = secondTime % 60
 

@@ -9,8 +9,8 @@ android {
 
     defaultConfig {
         applicationId "com.lolhistory"
-        minSdkVersion 29
-        targetSdkVersion 30
+        minSdkVersion 27
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
 

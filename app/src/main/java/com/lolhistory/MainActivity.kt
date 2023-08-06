@@ -2,6 +2,7 @@ package com.lolhistory
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
@@ -11,14 +12,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.lolhistory.databinding.ActivityMainBinding
 import com.lolhistory.datamodel.SummonerRankInfo
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
-    lateinit var binding: ActivityMainBinding
-    lateinit var viewModel: MainActivityViewModel
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var viewModel: MainActivityViewModel
 
-    lateinit var inputMethodManager: InputMethodManager
+    private lateinit var inputMethodManager: InputMethodManager
 
     private var isVisibleInfoLayout = false
+
+    private var puuid = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,18 +32,23 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
 
-        viewModel.getSummonerIDInfoLiveData().observe(this, { summonerIDInfo ->
-                if (summonerIDInfo == null) {
-                    val notExistToast = Toast.makeText(
-                        applicationContext,
-                        R.string.not_exist_summoner, Toast.LENGTH_SHORT
-                    )
-                    notExistToast.show()
-                    binding.loading.visibility = View.GONE
-                }
-            })
+        viewModel.summonerIDInfoLiveData.observe(this) { summonerIDInfo ->
+            if (summonerIDInfo == null) {
+                val notExistToast = Toast.makeText(
+                    applicationContext,
+                    R.string.not_exist_summoner, Toast.LENGTH_SHORT
+                )
+                notExistToast.show()
+                binding.loading.visibility = View.GONE
+            } else {
+                puuid = summonerIDInfo.puuid
+            }
+        }
 
-        viewModel.getSummonerRankInfoLiveData().observe(this, { summonerRankInfo ->
+        viewModel
+
+        viewModel.summonerRankInfoLiveData.observe(this) { summonerRankInfo ->
+            Log.d("TESTLOG", "summonerRankInfo: ${summonerRankInfo.tier}")
             if (summonerRankInfo != null) {
                 binding.inputLayout.visibility = View.GONE
                 isVisibleInfoLayout = true
@@ -47,30 +56,31 @@ class MainActivity : AppCompatActivity() {
             } else {
                 binding.loading.visibility = View.GONE
             }
-        })
+        }
 
-        viewModel.getHistoryAdapterLiveData().observe(this, { historyAdapter ->
-            if (historyAdapter == null) {
+        viewModel.matchHistoriesLiveData.observe(this) { matchHistories ->
+            if (matchHistories.isEmpty()) {
                 val historyErrorToast = Toast.makeText(
                     applicationContext,
                     R.string.history_error, Toast.LENGTH_SHORT
                 )
                 historyErrorToast.show()
             } else {
+                val historyAdapter = HistoryAdapter(ArrayList(matchHistories), puuid)
                 binding.rvHistory.adapter = historyAdapter
                 binding.swipeLayout.isRefreshing = false
             }
             binding.loading.visibility = View.GONE
-        })
+        }
 
         binding.rvHistory.layoutManager = LinearLayoutManager(this)
         binding.rvHistory.setHasFixedSize(true)
 
-        binding.swipeLayout.setOnRefreshListener { ->
+        binding.swipeLayout.setOnRefreshListener {
             viewModel.searchSummoner(binding.tvSummonerName.text.toString())
         }
 
-        binding.btnInputSummoner.setOnClickListener { v ->
+        binding.btnInputSummoner.setOnClickListener {
             binding.loading.visibility = View.VISIBLE
             inputMethodManager.hideSoftInputFromWindow(binding.etInputSummoner.windowToken, 0)
             viewModel.searchSummoner(binding.etInputSummoner.text.toString())
@@ -125,6 +135,7 @@ class MainActivity : AppCompatActivity() {
             "SILVER" -> binding.ivTierEmblem.setImageResource(R.drawable.emblem_silver)
             "GOLD" -> binding.ivTierEmblem.setImageResource(R.drawable.emblem_gold)
             "PLATINUM" -> binding.ivTierEmblem.setImageResource(R.drawable.emblem_platinum)
+            "EMERALD" -> binding.ivTierEmblem.setImageResource(R.drawable.emblem_emerald)
             "DIAMOND" -> binding.ivTierEmblem.setImageResource(R.drawable.emblem_diamond)
             "MASTER" -> binding.ivTierEmblem.setImageResource(R.drawable.emblem_master)
             "GRANDMASTER" -> binding.ivTierEmblem.setImageResource(R.drawable.emblem_grandmaster)

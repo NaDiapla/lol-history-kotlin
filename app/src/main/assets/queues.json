@@ -480,6 +480,12 @@
         "notes": null
     },
     {
+        "queueId": 1700,
+        "map": "Arena",
+        "description": "Arena",
+        "notes": null
+    },
+    {
         "queueId": 2000,
         "map": "Summoner's Rift",
         "description": "Tutorial 1",
