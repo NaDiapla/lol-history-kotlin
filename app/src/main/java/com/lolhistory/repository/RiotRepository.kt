@@ -1,7 +1,6 @@
 package com.lolhistory.repository
 
 import com.lolhistory.datamodel.MatchHistory
-import com.lolhistory.datamodel.MatchList
 import com.lolhistory.datamodel.SummonerIDInfo
 import com.lolhistory.datamodel.SummonerRankInfo
 import com.lolhistory.retrofit.APIClient
@@ -10,7 +9,7 @@ import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
-class RiotRepository {
+object RiotRepository {
     private val riotAPI = APIClient.getRiotClient().create(RiotAPI::class.java)
     private val riotAPIv5 = APIClient.getRiotClientV5().create(RiotAPI::class.java)
 
@@ -24,8 +23,8 @@ class RiotRepository {
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
 
-    fun getMatchHistoryList(puuid: String): Single<ArrayList<String>> = riotAPIv5
-        .getMatchHistoryList(puuid)
+    fun getMatchHistoryList(puuid: String, start: Int, count: Int): Single<ArrayList<String>> = riotAPIv5
+        .getMatchHistoryList(puuid, start, count)
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
 

@@ -77,13 +77,13 @@ class MainActivity : AppCompatActivity() {
         binding.rvHistory.setHasFixedSize(true)
 
         binding.swipeLayout.setOnRefreshListener {
-            viewModel.searchSummoner(binding.tvSummonerName.text.toString())
+            viewModel.getSummonerIdInfo(binding.tvSummonerName.text.toString())
         }
 
         binding.btnInputSummoner.setOnClickListener {
             binding.loading.visibility = View.VISIBLE
             inputMethodManager.hideSoftInputFromWindow(binding.etInputSummoner.windowToken, 0)
-            viewModel.searchSummoner(binding.etInputSummoner.text.toString())
+            viewModel.getSummonerIdInfo(binding.etInputSummoner.text.toString())
             binding.etInputSummoner.setText("")
         }
 

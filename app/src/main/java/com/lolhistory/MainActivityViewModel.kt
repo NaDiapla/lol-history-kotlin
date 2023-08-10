@@ -12,28 +12,28 @@ import io.reactivex.SingleObserver
 import io.reactivex.disposables.Disposable
 
 class MainActivityViewModel: ViewModel() {
-    private val repo = RiotRepository()
-
     private val _summonerIDInfoLiveData = MutableLiveData<SummonerIDInfo>()
     val summonerIDInfoLiveData: LiveData<SummonerIDInfo> get() = _summonerIDInfoLiveData
 
     private val _summonerRankInfoLiveData = MutableLiveData<SummonerRankInfo>()
     val summonerRankInfoLiveData: LiveData<SummonerRankInfo> get() = _summonerRankInfoLiveData
 
-    private val _historyAdapterLiveData = MutableLiveData<List<MatchHistory>>()
-    val matchHistoriesLiveData: LiveData<List<MatchHistory>> get() = _historyAdapterLiveData
+    private val _matchHistoriesLiveData = MutableLiveData<List<MatchHistory>>()
+    val matchHistoriesLiveData: LiveData<List<MatchHistory>> get() = _matchHistoriesLiveData
 
     private var summonerName = ""
 
     private var matchHistories: ArrayList<MatchHistory> = ArrayList()
 
 
-    fun searchSummoner(name: String) {
+    fun getSummonerIdInfo(name: String) {
+        if (name.isEmpty()) _summonerIDInfoLiveData.value = null
+
         this.summonerName = name
 
         matchHistories.clear()
 
-        repo.getSummonerIdInfo(name).subscribe(object :SingleObserver<SummonerIDInfo> {
+        RiotRepository.getSummonerIdInfo(name).subscribe(object :SingleObserver<SummonerIDInfo> {
             override fun onSubscribe(d: Disposable) {
             }
 
@@ -53,7 +53,7 @@ class MainActivityViewModel: ViewModel() {
     }
 
     private fun getSummonerRankInfo(summonerId: String) {
-        repo.getSummonerRankInfo(summonerId).subscribe(object: SingleObserver<List<SummonerRankInfo>> {
+        RiotRepository.getSummonerRankInfo(summonerId).subscribe(object: SingleObserver<List<SummonerRankInfo>> {
             override fun onSubscribe(d: Disposable) {
             }
 
@@ -69,20 +69,13 @@ class MainActivityViewModel: ViewModel() {
     }
 
     private fun getMatchList(puuid: String) {
-        repo.getMatchHistoryList(puuid).subscribe(object: SingleObserver<ArrayList<String>> {
+        RiotRepository.getMatchHistoryList(puuid, 0, 16).subscribe(object: SingleObserver<ArrayList<String>> {
             override fun onSubscribe(d: Disposable) {
             }
 
             override fun onSuccess(array: ArrayList<String>) {
-                var count = 0
                 for (match in array) {
-                    // Riot Development Key: 20 requests every 1 seconds(s)
-                    if (count < 15) {
-                        getMatchHistory(match)
-                        count++
-                    } else {
-                        break
-                    }
+                    getMatchHistory(match)
                 }
             }
 
@@ -93,20 +86,20 @@ class MainActivityViewModel: ViewModel() {
     }
 
     private fun getMatchHistory(matchId: String) {
-        repo.getMatchHistory(matchId).subscribe(object: SingleObserver<MatchHistory> {
+        RiotRepository.getMatchHistory(matchId).subscribe(object: SingleObserver<MatchHistory> {
             override fun onSubscribe(d: Disposable) {
             }
 
             override fun onSuccess(matchHistory: MatchHistory) {
                 matchHistories.add(matchHistory)
-                if (matchHistories.size > 14) {
-                    _historyAdapterLiveData.value = matchHistories
+                if (matchHistories.size > 15) {
+                    _matchHistoriesLiveData.value = matchHistories
                 }
             }
 
             override fun onError(e: Throwable) {
                 Log.d("TESTLOG", "[getMatchHistory] exception: $e")
-                _historyAdapterLiveData.value = null
+                _matchHistoriesLiveData.value = null
 
             }
         })
@@ -118,31 +111,35 @@ class MainActivityViewModel: ViewModel() {
         var soloRankTier = 0
         var flexRankTier = 0
         val summonerRankInfo: SummonerRankInfo
-        if (summonerRankInfoList.isEmpty()) {
-            // 언랭
-            Log.d("TESTLOG", "언랭")
-            summonerRankInfo = SummonerRankInfo(summonerName, "", "UNRANKED", "", 0, 0, 0)
-        } else if (summonerRankInfoList[0].queueType == "CHERRY") {
-            // 아레나
-            summonerRankInfo = SummonerRankInfo(summonerName, "CHERRY", "UNRANKED", "", summonerRankInfoList[0].leaguePoints, summonerRankInfoList[0].wins, summonerRankInfoList[0].losses)
-        } else {
-            for (info in summonerRankInfoList) {
-                if (info.queueType == "RANKED_SOLO_5x5") {
-                    // 솔랭
-                    soloRankInfo = info
-                    soloRankTier = calcTier(info.tier, info.rank, info.leaguePoints)
-                } else if (info.queueType == "RANKED_FLEX_SR") {
-                    // 자랭
-                    flexRankInfo = info
-                    flexRankTier = calcTier(info.tier, info.rank, info.leaguePoints)
-                }
+        when {
+            summonerRankInfoList.isEmpty() -> {
+                // 언랭
+                Log.d("TESTLOG", "언랭")
+                summonerRankInfo = SummonerRankInfo(summonerName, "", "UNRANKED", "", 0, 0, 0)
             }
-            summonerRankInfo = if (soloRankTier < flexRankTier) {
-                // 자랭 티어가 더 높을 때
-                flexRankInfo!!
-            } else {
-                // 솔랭 티어가 더 높거나 솔랭과 자랭의 티어가 같을 때
-                soloRankInfo!!
+            summonerRankInfoList[0].queueType == "CHERRY" -> {
+                // 아레나
+                summonerRankInfo = SummonerRankInfo(summonerName, "CHERRY", "UNRANKED", "", summonerRankInfoList[0].leaguePoints, summonerRankInfoList[0].wins, summonerRankInfoList[0].losses)
+            }
+            else -> {
+                for (info in summonerRankInfoList) {
+                    if (info.queueType == "RANKED_SOLO_5x5") {
+                        // 솔랭
+                        soloRankInfo = info
+                        soloRankTier = calcTier(info.tier, info.rank, info.leaguePoints)
+                    } else if (info.queueType == "RANKED_FLEX_SR") {
+                        // 자랭
+                        flexRankInfo = info
+                        flexRankTier = calcTier(info.tier, info.rank, info.leaguePoints)
+                    }
+                }
+                summonerRankInfo = if (soloRankTier < flexRankTier) {
+                    // 자랭 티어가 더 높을 때
+                    flexRankInfo!!
+                } else {
+                    // 솔랭 티어가 더 높거나 솔랭과 자랭의 티어가 같을 때
+                    soloRankInfo!!
+                }
             }
         }
         _summonerRankInfoLiveData.value = summonerRankInfo
