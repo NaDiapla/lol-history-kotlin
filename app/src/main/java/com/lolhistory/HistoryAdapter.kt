@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.lolhistory.databinding.MatchHistoryItemBinding
@@ -15,13 +17,24 @@ import com.lolhistory.retrofit.BaseUrl
 import java.util.*
 
 class HistoryAdapter(
-    private var matchHistories: ArrayList<MatchHistory>,
     private val puuid: String
-): RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
+): ListAdapter<MatchHistory, HistoryAdapter.ViewHolder>(
+    object : DiffUtil.ItemCallback<MatchHistory>(){
+        override fun areItemsTheSame(oldItem: MatchHistory, newItem: MatchHistory): Boolean {
+            return oldItem.info.gameId == newItem.info.gameId
+        }
+
+        override fun areContentsTheSame(oldItem: MatchHistory, newItem: MatchHistory): Boolean {
+            return oldItem == newItem
+        }
+    }
+) {
 
     private lateinit var context: Context
 
-    inner class ViewHolder(private val binding: MatchHistoryItemBinding): RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(
+        private val binding: MatchHistoryItemBinding
+    ): RecyclerView.ViewHolder(binding.root) {
         fun bind(matchHistory: MatchHistory, playerIndex: Int) {
             if (matchHistory.info.participants[playerIndex].win) {
                 binding.resultLayout.setBackgroundColor(context.getColor(R.color.colorWin))
@@ -67,18 +80,15 @@ class HistoryAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryAdapter.ViewHolder {
         context = parent.context
 
-        val binding = MatchHistoryItemBinding.inflate(LayoutInflater.from(context), parent, false)
-        matchHistories.sortByDescending { it.info.gameCreation }
-        return ViewHolder(binding)
+        return ViewHolder(MatchHistoryItemBinding.inflate(LayoutInflater.from(context), parent, false))
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val matchHistory = matchHistories[position]
-        holder.bind(matchHistory, getPlayerIndex(matchHistory))
+    override fun onBindViewHolder(holder: HistoryAdapter.ViewHolder, position: Int) {
+        holder.bind(getItem(position), getPlayerIndex(getItem(position)))
     }
 
-    override fun getItemCount(): Int {
-        return matchHistories.size
+    override fun getItemViewType(position: Int): Int {
+        return position
     }
 
     private fun getPlayerIndex(matchHistory: MatchHistory): Int {

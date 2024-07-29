@@ -12,9 +12,6 @@ data class SummonerIDInfo(
     @SerializedName("puuid")
     var puuid: String,
 
-    @SerializedName("name")
-    var name: String,
-
     @SerializedName("summonerLevel")
     var summonerLevel: Int
 )

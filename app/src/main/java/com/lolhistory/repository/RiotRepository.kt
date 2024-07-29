@@ -1,5 +1,6 @@
 package com.lolhistory.repository
 
+import com.lolhistory.datamodel.Account
 import com.lolhistory.datamodel.MatchHistory
 import com.lolhistory.datamodel.SummonerIDInfo
 import com.lolhistory.datamodel.SummonerRankInfo
@@ -13,6 +14,11 @@ object RiotRepository {
     private val riotAPI = APIClient.getRiotClient().create(RiotAPI::class.java)
     private val riotAPIv5 = APIClient.getRiotClientV5().create(RiotAPI::class.java)
 
+    fun getAccount(gameName: String, tagLine: String): Single<Account> = riotAPIv5
+        .getAccount(gameName, tagLine)
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+
     fun getSummonerIdInfo(summonerName: String): Single<SummonerIDInfo> = riotAPI
         .getSummonerIdInfo(summonerName)
         .subscribeOn(Schedulers.io())
@@ -23,7 +29,7 @@ object RiotRepository {
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
 
-    fun getMatchHistoryList(puuid: String, start: Int, count: Int): Single<ArrayList<String>> = riotAPIv5
+    fun getMatchHistoryList(puuid: String, start: Int, count: Int): Single<List<String>> = riotAPIv5
         .getMatchHistoryList(puuid, start, count)
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())

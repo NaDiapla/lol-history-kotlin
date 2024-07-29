@@ -24,6 +24,8 @@ class MainActivity : AppCompatActivity() {
 
     private var puuid = ""
 
+    private lateinit var adapter: HistoryAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -42,10 +44,14 @@ class MainActivity : AppCompatActivity() {
                 binding.loading.visibility = View.GONE
             } else {
                 puuid = summonerIDInfo.puuid
+                adapter = HistoryAdapter(puuid)
+                binding.rvHistory.also {
+                    it.adapter = adapter
+                    it.layoutManager = LinearLayoutManager(this)
+                    it.setHasFixedSize(true)
+                }
             }
         }
-
-        viewModel
 
         viewModel.summonerRankInfoLiveData.observe(this) { summonerRankInfo ->
             Log.d("TESTLOG", "summonerRankInfo: ${summonerRankInfo.tier}")
@@ -66,24 +72,32 @@ class MainActivity : AppCompatActivity() {
                 )
                 historyErrorToast.show()
             } else {
-                val historyAdapter = HistoryAdapter(ArrayList(matchHistories), puuid)
-                binding.rvHistory.adapter = historyAdapter
+                adapter.submitList(matchHistories.sortedByDescending { it.info.gameCreation }.toMutableList())
                 binding.swipeLayout.isRefreshing = false
             }
             binding.loading.visibility = View.GONE
         }
 
-        binding.rvHistory.layoutManager = LinearLayoutManager(this)
-        binding.rvHistory.setHasFixedSize(true)
-
         binding.swipeLayout.setOnRefreshListener {
-            viewModel.getSummonerIdInfo(binding.tvSummonerName.text.toString())
+            if (binding.etInputSummoner.text.toString().contains("#")) {
+                val summonerName = binding.etInputSummoner.text.toString().split("#", limit = 2)
+                viewModel.getAccount(summonerName[0], summonerName[1])
+            } else {
+                viewModel.getAccount(binding.etInputSummoner.text.toString())
+            }
         }
 
         binding.btnInputSummoner.setOnClickListener {
             binding.loading.visibility = View.VISIBLE
             inputMethodManager.hideSoftInputFromWindow(binding.etInputSummoner.windowToken, 0)
-            viewModel.getSummonerIdInfo(binding.etInputSummoner.text.toString())
+
+            if (binding.etInputSummoner.text.toString().contains("#")) {
+                val summonerName = binding.etInputSummoner.text.toString().split("#", limit = 2)
+                viewModel.getAccount(summonerName[0], summonerName[1])
+            } else {
+                viewModel.getAccount(binding.etInputSummoner.text.toString())
+            }
+
             binding.etInputSummoner.setText("")
         }
 

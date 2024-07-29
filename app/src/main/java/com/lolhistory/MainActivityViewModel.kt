@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.lolhistory.datamodel.Account
 import com.lolhistory.datamodel.MatchHistory
 import com.lolhistory.datamodel.SummonerIDInfo
 import com.lolhistory.datamodel.SummonerRankInfo
@@ -26,20 +27,36 @@ class MainActivityViewModel: ViewModel() {
     private var matchHistories: ArrayList<MatchHistory> = ArrayList()
 
 
-    fun getSummonerIdInfo(name: String) {
-        if (name.isEmpty()) _summonerIDInfoLiveData.value = null
+    fun getAccount(
+        gameName: String,
+        tagLine: String = "KR1"
+    ) {
+        Log.d("TESTLOG", "gameName: $gameName / tagLine: $tagLine")
+        RiotRepository.getAccount(gameName, tagLine).subscribe(object : SingleObserver<Account> {
+            override fun onSubscribe(d: Disposable) {
+            }
 
-        this.summonerName = name
+            override fun onSuccess(account: Account) {
+                summonerName = account.gameName
+                getSummonerIdInfo(account.puuid)
+            }
 
+            override fun onError(e: Throwable) {
+                Log.d("TESTLOG", "[getAccount] exception: $e")
+            }
+        })
+    }
+
+    fun getSummonerIdInfo(puuid: String) {
+        if (puuid.isEmpty()) _summonerIDInfoLiveData.value = null
         matchHistories.clear()
 
-        RiotRepository.getSummonerIdInfo(name).subscribe(object :SingleObserver<SummonerIDInfo> {
+        RiotRepository.getSummonerIdInfo(puuid).subscribe(object :SingleObserver<SummonerIDInfo> {
             override fun onSubscribe(d: Disposable) {
             }
 
             override fun onSuccess(summonerIDInfo: SummonerIDInfo) {
                 _summonerIDInfoLiveData.value = summonerIDInfo
-                summonerName = summonerIDInfo.name
                 getSummonerRankInfo(summonerIDInfo.id)
                 getMatchList(summonerIDInfo.puuid)
                 Log.d("TESTLOG", "[getSummonerIdInfo] id: " + summonerIDInfo.puuid)
@@ -69,12 +86,12 @@ class MainActivityViewModel: ViewModel() {
     }
 
     private fun getMatchList(puuid: String) {
-        RiotRepository.getMatchHistoryList(puuid, 0, 16).subscribe(object: SingleObserver<ArrayList<String>> {
+        RiotRepository.getMatchHistoryList(puuid, 0, 16).subscribe(object: SingleObserver<List<String>> {
             override fun onSubscribe(d: Disposable) {
             }
 
-            override fun onSuccess(array: ArrayList<String>) {
-                for (match in array) {
+            override fun onSuccess(list: List<String>) {
+                for (match in list) {
                     getMatchHistory(match)
                 }
             }

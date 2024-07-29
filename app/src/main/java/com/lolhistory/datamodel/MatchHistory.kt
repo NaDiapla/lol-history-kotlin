@@ -13,6 +13,9 @@ data class MatchHistory(
         @SerializedName("gameDuration")
         var gameDuration: Long,
 
+        @SerializedName("gameId")
+        var gameId: Long,
+
         @SerializedName("queueId")
         var queueId: Int,
 
