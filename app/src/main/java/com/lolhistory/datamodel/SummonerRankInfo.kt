@@ -4,7 +4,6 @@ import com.google.gson.annotations.SerializedName
 
 data class SummonerRankInfo(
     /**
-     * summonerName: 소환사 이름
      * queueType: 솔랭/자랭 랭크 타입
      * tier: 티어(챌린저 ~ 언랭)
      * rank: 랭크 (I ~ IV)
@@ -12,8 +11,6 @@ data class SummonerRankInfo(
      * wins: 승리 수
      * losses: 패배 수
      */
-    @SerializedName("summonerName")
-    var summonerName: String,
 
     @SerializedName("queueType")
     var queueType: String,

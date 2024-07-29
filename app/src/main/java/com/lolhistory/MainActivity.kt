@@ -34,6 +34,10 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
 
+        viewModel.summonerName.observe(this) { summonerName ->
+            if (summonerName.isNotEmpty()) binding.tvSummonerName.text = summonerName
+        }
+
         viewModel.summonerIDInfoLiveData.observe(this) { summonerIDInfo ->
             if (summonerIDInfo == null) {
                 val notExistToast = Toast.makeText(
@@ -118,7 +122,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun setRankInfo(summonerRankInfo: SummonerRankInfo) {
         setTierEmblem(summonerRankInfo.tier)
-        binding.tvSummonerName.text = summonerRankInfo.summonerName
         val tierRank = summonerRankInfo.tier + " " + summonerRankInfo.rank
         binding.tvTier.text = tierRank
         if (summonerRankInfo.tier == "UNRANKED") {

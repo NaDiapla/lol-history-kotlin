@@ -13,6 +13,9 @@ import io.reactivex.SingleObserver
 import io.reactivex.disposables.Disposable
 
 class MainActivityViewModel: ViewModel() {
+    private val _summonerName = MutableLiveData<String>()
+    val summonerName: LiveData<String> get() = _summonerName
+
     private val _summonerIDInfoLiveData = MutableLiveData<SummonerIDInfo>()
     val summonerIDInfoLiveData: LiveData<SummonerIDInfo> get() = _summonerIDInfoLiveData
 
@@ -21,8 +24,6 @@ class MainActivityViewModel: ViewModel() {
 
     private val _matchHistoriesLiveData = MutableLiveData<List<MatchHistory>>()
     val matchHistoriesLiveData: LiveData<List<MatchHistory>> get() = _matchHistoriesLiveData
-
-    private var summonerName = ""
 
     private var matchHistories: ArrayList<MatchHistory> = ArrayList()
 
@@ -37,7 +38,7 @@ class MainActivityViewModel: ViewModel() {
             }
 
             override fun onSuccess(account: Account) {
-                summonerName = account.gameName
+                _summonerName.value = account.gameName
                 getSummonerIdInfo(account.puuid)
             }
 
@@ -132,11 +133,11 @@ class MainActivityViewModel: ViewModel() {
             summonerRankInfoList.isEmpty() -> {
                 // 언랭
                 Log.d("TESTLOG", "언랭")
-                summonerRankInfo = SummonerRankInfo(summonerName, "", "UNRANKED", "", 0, 0, 0)
+                summonerRankInfo = SummonerRankInfo("", "UNRANKED", "", 0, 0, 0)
             }
             summonerRankInfoList[0].queueType == "CHERRY" -> {
                 // 아레나
-                summonerRankInfo = SummonerRankInfo(summonerName, "CHERRY", "UNRANKED", "", summonerRankInfoList[0].leaguePoints, summonerRankInfoList[0].wins, summonerRankInfoList[0].losses)
+                summonerRankInfo = SummonerRankInfo("CHERRY", "UNRANKED", "", summonerRankInfoList[0].leaguePoints, summonerRankInfoList[0].wins, summonerRankInfoList[0].losses)
             }
             else -> {
                 for (info in summonerRankInfoList) {
